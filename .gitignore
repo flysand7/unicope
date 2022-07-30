@@ -1,0 +1,10 @@
+*.exe
+*.lib
+*.ilk
+*.pdb
+*.obj
+*.o
+src
+data.c
+whitebox_log.txt
+test
