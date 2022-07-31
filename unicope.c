@@ -11,10 +11,9 @@
 
 int main() {
   char8_t buf[4] = {0x80, 0xc0};
-  size_t buf_len = sizeof buf;
+  size_t  buf_len = sizeof buf;
   char8_t *ptr = buf;
-  char32_t cp;
-  int len = utf8_cdecf(&ptr, &cp);
+  int len = utf8_cenc(buf_len, &ptr, 0x0440);
   return 0;
 }
 #endif

@@ -57,6 +57,12 @@ uc_func int utf8_cdec(size_t len, char8_t **utf8, char32_t *c);
 uc_func int utf8_cdecf(char8_t **utf8, char32_t *c);
 
 // Encode a single Unicode character and write it into a string
+// INPUT:
+// - utf8: pointer to a string to decode from
+// OUTPUT:
+// - *utf8: string, advanced by number of bytes that got written
+// - Return value: number of bytes written, or negative value of encoding
+//   failed
 uc_func int utf8_cenc(size_t len, char8_t **utf8, char32_t c);
 
 //---------------------------------------------------------------------------//
@@ -139,9 +145,44 @@ uc_func int utf8_cdecf(char8_t **ptr, char32_t *cp) {
   return res;
 }
 
-uc_func int utf8_cenc(size_t len, char8_t **utf8, char32_t c) {
-
-  return 0;
+uc_func int utf8_cenc(size_t size, char8_t **strp, char32_t c) {
+  if(size == 0) return -1;
+  char8_t *utf8 = *strp;
+  int len = 0;
+  if(c < 0x80) {
+    len = 1;
+    if(len > size) return -1;
+    *utf8++ = (char8_t)c;
+  }
+  else if(c < 0x800) {
+    len = 2;
+    if(len > size) return -1;
+    *utf8++ = 0xc0 | (char8_t)(c >> 6);
+    *utf8++ = 0x80 | (char8_t)(c & 0x3f);
+  }
+  else if(c < 0x10000) {
+    if(c <= 0xd800 && c < 0xe000) {
+      return -1;
+    }
+    len = 3;
+    if(len > size) return -1;
+    *utf8++ = 0xe0 | (char8_t)(c >> 12);
+    *utf8++ = 0x80 | (char8_t)((c >> 6) & 0x3f);
+    *utf8++ = 0x80 | (char8_t)(c & 0x3f);
+  }
+  else if(c < 0x110000) {
+    len = 4;
+    if(len > size) return -1;
+    *utf8++ = 0xe0 | (char8_t)(c >> 18);
+    *utf8++ = 0x80 | (char8_t)((c >> 12) & 0x3f);
+    *utf8++ = 0x80 | (char8_t)((c >> 6) & 0x3f);
+    *utf8++ = 0x80 | (char8_t)(c & 0x3f);
+  }
+  else {
+    len = -1;
+  }
+  *strp = utf8;
+  return len;
 }
 
 #endif // uc_implementation
