@@ -10,10 +10,11 @@
 #include <assert.h>
 
 int main() {
-  char8_t buf[4] = {0x80, 0xc0};
+  char16_t buf[4] = {0xD801, 0xDC37};
   size_t  buf_len = sizeof buf;
-  char8_t *ptr = buf;
-  int len = utf8_cenc(buf_len, &ptr, 0x0440);
+  char16_t *ptr = buf;
+  uint32_t c;
+  int len = utf16_cdec(buf_len, &ptr, &c);
   return 0;
 }
 #endif

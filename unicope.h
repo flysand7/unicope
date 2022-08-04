@@ -65,6 +65,18 @@ uc_func int utf8_cdecf(char8_t **utf8, char32_t *c);
 //   failed
 uc_func int utf8_cenc(size_t len, char8_t **utf8, char32_t c);
 
+// Decode a single Unicode character from UTF-16 string
+// INPUT:
+// - len: length of the input UTF-16 string
+// - utf16: pointer to UTF-16 string
+// OUTPUT:
+// - c: decoded character
+// - utf16: pointer to UTF-16 string after the decoded character
+// - Return value: negative value, if decoding error occurs. Zero if the
+//   decoded character is NUL, otherwise returns number of code units that
+//   got read.
+uc_func int utf16_cdec(size_t len, char16_t **utf16, char32_t *c);
+
 //---------------------------------------------------------------------------//
 
 #if defined(uc_implementation)
@@ -183,6 +195,28 @@ uc_func int utf8_cenc(size_t size, char8_t **strp, char32_t c) {
   }
   *strp = utf8;
   return len;
+}
+
+uc_func int utf16_cdec(size_t size, char16_t **p, char32_t *c) {
+  if(size == 0) return -1;
+  char16_t *utf16 = *p;
+  if((utf16[0] & 0xfc00) == 0xd800) {
+    if(size < 2) return -1;
+    if((utf16[1] & 0xfc00) != 0xdc00) {
+      return -1;
+    }
+    *c = (((utf16[0] & 0x3ff) << 10) | (utf16[1] & 0x3ff)) + 0x10000;
+    *p = utf16 + 2;
+    return 2;
+  }
+  else if((utf16[0] & 0xfc00) == 0xd800) {
+    return -1;
+  }
+  else {
+    *c = utf16[0];
+    *p = utf16+1;
+    return 1;
+  }
 }
 
 #endif // uc_implementation
